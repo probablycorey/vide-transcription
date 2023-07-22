@@ -2,23 +2,24 @@ import { execSync } from "child_process"
 import fs from "fs"
 import path from "path"
 
-const inputFile = process.argv[2]
-const bitrate = process.argv[4]
 const outputName = "output/output"
 
-const processVideo = (inputFile: string) => {
+export const processVideo = (inputFile: string) => {
   const dir = path.dirname(outputName)
+  fs.rmdirSync(dir, { recursive: true })
   fs.mkdirSync(dir, { recursive: true })
 
   const audioFile = `${outputName}.mp3`
   const adjustedAudioFile = `${outputName}.adjusted.mp3`
 
-  console.log(`🌈 `, 1)
+  console.log(`🌈 `, "extracting audio")
   extractAudio(inputFile, audioFile)
-  console.log(`🌈 `, 2)
+  console.log(`🌈 `, "adjusting bitrate")
   adjustBitrate(audioFile, adjustedAudioFile)
-  console.log(`🌈 `, 3)
-  splitAudio(adjustedAudioFile)
+  console.log(`🌈 `, "splitting audio")
+  const outputFiles = splitAudio(adjustedAudioFile)
+
+  return outputFiles
 }
 
 const execFFmpegCommand = (command: string) => {
@@ -38,8 +39,13 @@ const extractAudio = (inputFile: string, outputFile: string) => {
 
 const splitAudio = (inputFile: string) => {
   const duration = 5000 //seconds
-  const command = `ffmpeg -i ${inputFile} -f segment -segment_time ${duration} -c copy ${outputName}%03d.mp3`
+  const command = `ffmpeg -i ${inputFile} -f segment -segment_time ${duration} -c copy ${outputName}-%03d.mp3`
   execFFmpegCommand(command)
+
+  // get all files that match outputName-*.mp3
+  const dir = path.dirname(outputName)
+  const outputFiles = fs.readdirSync(dir).filter((file) => file.startsWith(`${outputName}-`))
+  return outputFiles
 }
 
 const adjustBitrate = (inputFile: string, outputFile: string) => {
@@ -47,5 +53,3 @@ const adjustBitrate = (inputFile: string, outputFile: string) => {
   const command = `ffmpeg -i ${inputFile} -vn -b:a ${bitrate} -threads 4 ${outputFile}`
   execFFmpegCommand(command)
 }
-
-processVideo(inputFile)
