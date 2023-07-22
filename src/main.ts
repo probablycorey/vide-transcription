@@ -1,6 +1,5 @@
 import { processVideo } from "./processVideo"
 import { transcribe } from "./transcribe"
-
 const inputFile = process.argv[2]
 
 const main = async () => {

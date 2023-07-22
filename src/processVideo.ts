@@ -6,7 +6,7 @@ const outputName = "output/output"
 
 export const processVideo = (inputFile: string) => {
   const dir = path.dirname(outputName)
-  fs.rmdirSync(dir, { recursive: true })
+  fs.rm(dir, { recursive: true })
   fs.mkdirSync(dir, { recursive: true })
 
   const audioFile = `${outputName}.mp3`
@@ -44,7 +44,8 @@ const splitAudio = (inputFile: string) => {
 
   // get all files that match outputName-*.mp3
   const dir = path.dirname(outputName)
-  const outputFiles = fs.readdirSync(dir).filter((file) => file.startsWith(`${outputName}-`))
+  const basename = path.basename(outputName, path.extname(outputName))
+  const outputFiles = fs.readdirSync(dir).filter((file) => file.startsWith(`${basename}-`))
   return outputFiles
 }
 
